@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const path = require('path');
+const Analytics = require('analytics').default;
+const googleAnalytics = require('@analytics/google-analytics').default
 
 //components
 const Connection = require('./connection/db.js');
@@ -22,6 +24,22 @@ const PORT = 8000;
 
 Connection(process.env.MONGO_URL);
 
+const analytics = Analytics({
+    app: 'cloth-management-app',
+    plugins: [
+        googleAnalytics({
+            measurementIds: ['G-P2XSF6H7SX']
+        })
+    ]
+})
+
+/* Track a page view */
+analytics.page();
+
+analytics.track('users', () => {
+    console.log('do this after track')
+})
+
 app.use(async (req, res, next) => {
     if (req.headers["x-access-token"]) {
         const accessToken = req.headers["x-access-token"];
@@ -34,8 +52,7 @@ app.use(async (req, res, next) => {
     } else {
         next();
     }
-});
-
+})
 app.use('/', routes)
 
 app.listen(process.env.PORT || PORT, () => console.log(`Server is running successfully on PORT ${PORT}`));
